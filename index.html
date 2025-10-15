@@ -3,623 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Estoque - Tema Escuro</title>
+    <title>Gerenciador de Estoque</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-            background: #0a0a0a;
-            color: #ffffff;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.4;
-            padding-bottom: 80px;
-        }
-
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-            min-height: calc(100vh - 80px);
-            background: #0a0a0a;
-        }
-
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #333;
-        }
-
-        .section-header h2 {
-            color: #ffffff;
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        /* ESTATÍSTICAS HORIZONTAL COM ESPAÇO */
-        .stats-container {
-            margin-top: 2rem;
-            margin-bottom: 2rem; /* ESPAÇO NO FINAL */
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 1.5rem;
-            border: 1px solid #333;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-
-        .stats-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .stats-title {
-            font-size: 1.1rem;
-            color: #ffffff;
-        }
-
-        .stats-date {
-            font-size: 0.75rem;
-            color: #999999;
-        }
-
-        .stats-grid {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
-            scrollbar-width: thin;
-        }
-
-        .stats-grid::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .stats-grid::-webkit-scrollbar-track {
-            background: #333;
-            border-radius: 2px;
-        }
-
-        .stats-grid::-webkit-scrollbar-thumb {
-            background: #dc2626;
-            border-radius: 2px;
-        }
-
-        .stat-card {
-            background: #2a2a2a;
-            padding: 0.75rem;
-            border-radius: 6px;
-            text-align: center;
-            border: 1px solid #444;
-            min-width: 120px;
-            flex-shrink: 0;
-        }
-
-        .stat-number {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #cccccc;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-abastecido { color: #10b981; }
-        .stat-reabastecer { color: #f59e0b; }
-        .stat-faltando { color: #dc2626; animation: pulse 2s infinite; }
-        .stat-total { color: #ffffff; }
-        .stat-initial { color: #60a5fa; }
-        .stat-stock { color: #a78bfa; }
-
-        /* GRÁFICO CENTRALIZADO */
-        .chart-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* DISTRIBUI ESPAÇO */
-            gap: 1.5rem;
-            padding: 1rem;
-            background: #2a2a2a;
-            border-radius: 6px;
-            border: 1px solid #444;
-            margin-bottom: 1rem;
-        }
-
-        .chart-container-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center; /* CENTRALIZA O GRÁFICO */
-            flex: 0 0 140px; /* TAMANHO FIXO */
-        }
-
-        .chart-container {
-            position: relative;
-            height: 120px;
-            width: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chart-legend {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            min-width: 0; /* EVITA EXPANSÃO */
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .summary-card {
-            background: #2a2a2a;
-            padding: 1rem;
-            border-radius: 6px;
-            border: 1px solid #444;
-            text-align: center;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .tabs-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1a1a1a;
-            padding: 0.75rem 1rem;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
-            border-top: 1px solid #333;
-            z-index: 100;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .nav-btn {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: #cccccc;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            flex: 1;
-            max-width: 150px;
-        }
-
-        .nav-btn.active {
-            background: #dc2626;
-            color: #ffffff;
-            border-color: #dc2626;
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
-        }
-
-        .nav-btn:hover {
-            background: #444;
-            color: #ffffff;
-        }
-
-        .form-container {
-            background: #1a1a1a;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-weight: 500;
-            color: #cccccc;
-            font-size: 0.8rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 2px solid #444;
-            border-radius: 6px;
-            background: #2a2a2a;
-            color: #ffffff;
-            font-size: 0.9rem;
-            transition: border-color 0.2s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #dc2626;
-            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            flex: 1;
-        }
-
-        .btn-primary {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #b91c1c;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-secondary {
-            background: #444;
-            color: #cccccc;
-            border: 1px solid #555;
-        }
-
-        .btn-secondary:hover {
-            background: #555;
-        }
-
-        .products-grid {
-            display: grid;
-            gap: 1rem;
-            margin-top: 1rem;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        }
-
-        .product-card {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            border: 1px solid #333;
-            cursor: pointer;
-        }
-
-        .product-card:hover {
-            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.1);
-            transform: translateY(-1px);
-            border-color: #dc2626;
-        }
-
-        .product-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-
-        .product-name {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #ffffff;
-            max-width: 60%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .stock-status {
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .status-abastecido {
-            background: #10b98120;
-            color: #10b981;
-            border: 1px solid #10b981;
-        }
-
-        .status-reabastecer {
-            background: #f59e0b20;
-            color: #f59e0b;
-            border: 1px solid #f59e0b;
-        }
-
-        .status-faltando {
-            background: #dc262620;
-            color: #dc2626;
-            border: 1px solid #dc2626;
-            animation: pulse 2s infinite;
-        }
-
-        .stock-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .stock-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #333;
-        }
-
-        .stock-label {
-            font-size: 0.75rem;
-            color: #999999;
-            font-weight: 500;
-        }
-
-        .stock-number {
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-align: right;
-        }
-
-        .initial-stock-abastecido { 
-            color: #10b981 !important; 
-            text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-        }
-        .initial-stock-reabastecer { 
-            color: #f59e0b !important; 
-            text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
-        }
-        .initial-stock-faltando { 
-            color: #dc2626 !important; 
-            text-shadow: 0 0 8px rgba(220, 38, 38, 0.7);
-            animation: pulse-number 2s infinite;
-        }
-
-        @keyframes pulse-number {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        .min-stock { 
-            color: #999999; 
-        }
-
-        .product-log {
-            padding: 0.1rem 0;
-            font-size: 0.65rem;
-            color: #666666;
-            text-align: center;
-        }
-
-        .stock-actions {
-            padding-top: 0.2rem;
-            border-top: 1px solid #333;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-        }
-
-        .modal-content {
-            background: #1a1a1a;
-            padding: 1.5rem;
-            border-radius: 8px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            border: 1px solid #333;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            color: #999999;
-            cursor: pointer;
-            padding: 0.25rem;
-        }
-
-        .close-btn:hover {
-            color: #dc2626;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #999999;
-            background: #1a1a1a;
-            border-radius: 8px;
-            border: 1px solid #333;
-        }
-
-        .empty-state h3 {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            color: #cccccc;
-        }
-
+        :root {
+            --bg: #0a0a0a;
+            --card: #1a1a1a;
+            --dark: #2a2a2a;
+            --border: #333;
+            --text: #fff;
+            --text-muted: #ccc;
+            --accent: #dc2626;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --blue: #60a5fa;
+            --purple: #a78bfa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.4; 
+            padding-bottom: 80px; 
+            min-height: 100vh;
+        }
+
+        .main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CATEGORIAS SCROLL HORIZONTAL */
+        .categories-container { margin-bottom: 1rem; background: var(--card); border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); }
+        .categories-scroll { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin; }
+        .categories-scroll::-webkit-scrollbar { height: 4px; }
+        .categories-scroll::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
+        .categories-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+        .category-btn { 
+            background: var(--dark); border: 1px solid #444; padding: 0.5rem 1rem; 
+            border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; 
+            color: var(--text-muted); white-space: nowrap; flex-shrink: 0; 
+            transition: all .2s; 
+        }
+        .category-btn.active { background: var(--accent); color: var(--text); border-color: var(--accent); }
+        .category-btn:hover { background: #444; color: var(--text); }
+        .category-btn.all { background: var(--dark); border-color: var(--blue); color: var(--blue); }
+        .category-btn.all.active { background: var(--blue); color: var(--text); border-color: var(--blue); }
+
+        /* FILTRO DE CATEGORIA */
+        .category-filter { position: relative; margin-bottom: 1rem; }
+        .filter-input { 
+            width: 100%; padding: 0.5rem; border: 2px solid #444; border-radius: 6px; 
+            background: var(--dark); color: var(--text); font-size: 0.9rem; 
+            transition: border-color .2s; 
+        }
+        .filter-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(220,38,38,.2); }
+        .filter-results { 
+            position: absolute; top: 100%; left: 0; right: 0; background: var(--card); 
+            border: 1px solid var(--border); border-radius: 6px; max-height: 200px; 
+            overflow-y: auto; z-index: 10; display: none; 
+        }
+        .filter-item { 
+            padding: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); 
+            font-size: 0.9rem; transition: background .2s; 
+        }
+        .filter-item:hover { background: var(--dark); }
+        .filter-item:last-child { border-bottom: none; }
+        .filter-info { 
+            font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; 
+        }
+
+        .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .header h2 { font-size: 1.25rem; font-weight: 600; }
+
+        /* Stats */
+        .stats { 
+            margin: 2rem 0; background: var(--card); border-radius: 8px; padding: 1.5rem; 
+            border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+        .stats-title { font-size: 1.1rem; }
+        .stats-date { font-size: 0.75rem; color: #999; }
+        .stats-grid { display: flex; gap: 0.75rem; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
+        .stats-grid::-webkit-scrollbar { height: 4px; }
+        .stats-grid::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
+        .stats-grid::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+        
+        .stat-card { background: var(--dark); padding: 0.75rem; border-radius: 6px; text-align: center; border: 1px solid #444; min-width: 120px; flex-shrink: 0; }
+        .stat-number { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-success { color: var(--success); }
+        .stat-warning { color: var(--warning); }
+        .stat-danger { color: var(--danger); animation: pulse 2s infinite; }
+        .stat-total { color: var(--text); }
+        .stat-blue { color: var(--blue); }
+        .stat-purple { color: var(--purple); }
+
+        .chart-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1rem; background: var(--dark); border-radius: 6px; border: 1px solid #444; margin-bottom: 1rem; }
+        .chart-wrap { display: flex; align-items: center; justify-content: center; flex: 0 0 140px; }
+        .chart { position: relative; height: 120px; width: 120px; display: flex; align-items: center; justify-content: center; }
+        .legend { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+        .legend-color { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+        .summary-card { background: var(--dark); padding: 1rem; border-radius: 6px; border: 1px solid #444; text-align: center; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+        /* Form */
+        .form { background: var(--card); padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); border: 1px solid var(--border); max-width: 400px; margin: 0 auto; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; color: var(--text-muted); font-size: 0.8rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 2px solid #444; border-radius: 6px; background: var(--dark); color: var(--text); font-size: 0.9rem; transition: border-color .2s; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(220,38,38,.2); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+        /* Products */
+        .products { display: grid; gap: 1rem; margin-top: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        .product { background: var(--card); border-radius: 8px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.5); transition: all .2s; border-left: 3px solid transparent; border: 1px solid var(--border); cursor: pointer; }
+        .product:hover { box-shadow: 0 4px 20px rgba(220,38,38,.1); transform: translateY(-1px); border-color: var(--accent); }
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+        .product-name { font-size: 1rem; font-weight: 600; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .product-category { font-size: 0.75rem; color: var(--blue); font-weight: 500; margin-bottom: 0.25rem; }
+        .status { padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; border: 1px solid; }
+        .status-success { background: rgba(16,185,129,.1); color: var(--success); border-color: var(--success); }
+        .status-warning { background: rgba(245,158,11,.1); color: var(--warning); border-color: var(--warning); }
+        .status-danger { background: rgba(220,38,38,.1); color: var(--danger); border-color: var(--danger); animation: pulse 2s infinite; }
+        .stock-info { display: flex; flex-direction: column; gap: 0.5rem; }
+        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
+        .stock-label { font-size: 0.75rem; color: #999; font-weight: 500; }
+        .stock-number { font-size: 1.1rem; font-weight: 700; text-align: right; }
+        .stock-number.success { color: var(--success) !important; text-shadow: 0 0 8px rgba(16,185,129,.5); }
+        .stock-number.warning { color: var(--warning) !important; text-shadow: 0 0 8px rgba(245,158,11,.5); }
+        .stock-number.danger { color: var(--danger) !important; text-shadow: 0 0 8px rgba(220,38,38,.7); animation: pulse 2s infinite; }
+        .product-log { padding: 0.1rem 0; font-size: 0.65rem; color: #666; text-align: center; }
+        .stock-actions { padding-top: 0.2rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+
+        /* Buttons */
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all .2s; flex: 1; }
+        .btn-primary, .btn-danger { background: var(--accent); color: white; }
+        .btn-primary:hover, .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #444; color: var(--text-muted); border: 1px solid #555; }
+        .btn-secondary:hover { background: #555; }
+
+        /* Navigation */
+        .tabs { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); padding: 0.75rem 1rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); border-top: 1px solid var(--border); z-index: 100; }
+        .nav { display: flex; justify-content: center; gap: 0.5rem; max-width: 1200px; margin: 0 auto; }
+        .nav-btn { background: var(--dark); border: 1px solid #444; padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--text-muted); border-radius: 8px; transition: all .2s; flex: 1; max-width: 150px; }
+        .nav-btn.active { background: var(--accent); color: var(--text); border-color: var(--accent); box-shadow: 0 2px 4px rgba(220,38,38,.3); }
+        .nav-btn:hover { background: #444; color: var(--text); }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 1rem; }
+        .modal-content { background: var(--card); padding: 1.5rem; border-radius: 8px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border: 1px solid var(--border); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .close-btn { background: none; border: none; font-size: 1.25rem; color: #999; cursor: pointer; padding: 0.25rem; }
+        .close-btn:hover { color: var(--accent); }
+
+        /* Empty State */
+        .empty { text-align: center; padding: 2rem 1rem; color: #999; background: var(--card); border-radius: 8px; border: 1px solid var(--border); }
+        .empty h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
+
+        /* Media Queries */
         @media (max-width: 768px) {
-            .products-grid { grid-template-columns: 1fr; }
-            .stats-grid { gap: 0.5rem; }
-            .stat-card { min-width: 100px; padding: 0.5rem; }
-            .chart-wrapper { 
-                flex-direction: column; 
-                align-items: center; 
-                text-align: center;
-                gap: 1rem;
-            }
-            .chart-container-wrapper { 
-                flex: none; 
-                order: -1; 
-            }
-            .chart-container { 
-                height: 100px; 
-                width: 100px; 
-            }
-            .stats-summary { 
-                grid-template-columns: 1fr; 
-                gap: 0.75rem;
-            }
-            .stats-header { 
-                flex-direction: column; 
-                align-items: flex-start;
-                gap: 0.25rem;
-            }
+            .products { grid-template-columns: 1fr; }
+            .stats-grid, .categories-scroll { gap: 0.5rem; }
+            .stat-card, .category-btn { min-width: 100px; padding: 0.5rem; }
+            .chart-wrapper { flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+            .chart-wrap { order: -1; }
+            .chart { height: 100px; width: 100px; }
+            .summary { grid-template-columns: 1fr; gap: 0.75rem; }
+            .stats-header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
             .form-row { grid-template-columns: 1fr; }
-            .nav-buttons { gap: 0.25rem; }
+            .nav { gap: 0.25rem; }
             .nav-btn { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+            .category-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+            .filter-results { max-height: 150px; }
         }
     </style>
 </head>
 <body>
-    <div class="main-content">
+    <div class="main">
         <section id="produtos" class="section active">
-            <div class="section-header">
-                <h2>GELADEIRA</h2>
+            <div class="categories-container">
+                <div class="categories-scroll" id="categoriesScroll">
+                    <button class="category-btn all active" data-category="all" onclick="filterByCategory('all')">Todas</button>
+                </div>
             </div>
             
-            <div id="productsContainer" class="products-grid">
-                <div class="empty-state">
+            <div class="header">
+                <h2 id="currentCategoryTitle">TODAS AS CATEGORIAS</h2>
+            </div>
+            
+            <div id="productsContainer" class="products">
+                <div class="empty">
                     <h3>Nenhum produto cadastrado</h3>
                     <p>Adicione produtos na aba de cadastro</p>
                 </div>
             </div>
-
-            <!-- SEÇÃO DE ESTATÍSTICAS COM ESPAÇO -->
-            <div id="statsSection" class="stats-container" style="display: none;">
+            
+            <div id="statsSection" class="stats" style="display:none;">
                 <div class="stats-header">
                     <div class="stats-title">📊 Estatísticas</div>
                     <div class="stats-date" id="statsDate"></div>
                 </div>
-                
                 <div class="stats-grid" id="statsGrid"></div>
-                
                 <div class="chart-wrapper">
-                    <div class="chart-container-wrapper">
-                        <div class="chart-container">
-                            <canvas id="statsChart"></canvas>
-                        </div>
+                    <div class="chart-wrap">
+                        <div class="chart"><canvas id="statsChart"></canvas></div>
                     </div>
-                    <div class="chart-legend" id="chartLegend"></div>
+                    <div class="legend" id="chartLegend"></div>
                 </div>
-                
-                <div class="stats-summary" id="statsSummary"></div>
+                <div class="summary" id="statsSummary"></div>
             </div>
         </section>
 
         <section id="cadastro" class="section">
-            <div class="section-header">
-                <h2>NOVO PRODUTO</h2>
-            </div>
-            <div class="form-container">
+            <div class="header"><h2>NOVO PRODUTO</h2></div>
+            <div class="form">
                 <form id="productForm">
                     <div class="form-group">
                         <label for="productName">Nome do Produto</label>
                         <input type="text" id="productName" placeholder="Ex: Refrigerante" required>
+                    </div>
+                    <div class="form-group category-filter">
+                        <label for="productCategory">Categoria</label>
+                        <input type="text" id="productCategory" placeholder="Digite R para Refrigerante..." required>
+                        <div class="filter-results" id="categoryFilterResults"></div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -639,8 +253,8 @@
         </section>
     </div>
 
-    <div class="tabs-container">
-        <div class="nav-buttons">
+    <div class="tabs">
+        <div class="nav">
             <button class="nav-btn active" onclick="showSection('produtos')">Produtos</button>
             <button class="nav-btn" onclick="showSection('cadastro')">Cadastro</button>
         </div>
@@ -657,6 +271,10 @@
                 <div class="form-group">
                     <label for="editName">Nome do Produto</label>
                     <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCategory">Categoria</label>
+                    <input type="text" id="editCategory" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -678,129 +296,187 @@
 
     <script>
         let products = JSON.parse(localStorage.getItem('products')) || [];
+        let categories = [...new Set(products.map(p => p.category).filter(Boolean))];
         let editingId = null;
         let statsChart = null;
+        let currentCategory = 'all';
 
-        function formatDateTime(date) {
-            return date.toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
+        const CHART_COLORS = {
+            success: '#10b981',
+            warning: '#f59e0b', 
+            danger: '#dc2626'
+        };
+
+        const formatDate = d => d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+        
+        const getStatus = (qty, min) => {
+            qty = parseInt(qty) || 0; min = parseInt(min) || 0;
+            if (qty > 5 && min > 10) return {status:'success', label:'Abastecido'};
+            if (qty < 5 && min > 10) return {status:'warning', label:'Reabastecer'};
+            return {status:'danger', label:'Faltando'};
+        };
+
+        function updateCategories() {
+            categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+            localStorage.setItem('categories', JSON.stringify(categories));
+            renderCategories();
+        }
+
+        function renderCategories() {
+            const scroll = document.getElementById('categoriesScroll');
+            scroll.innerHTML = `
+                <button class="category-btn all active" data-category="all" onclick="filterByCategory('all')">Todas</button>
+                ${categories.map(cat => `
+                    <button class="category-btn" data-category="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>
+                `).join('')}
+            `;
+        }
+
+        // FILTRO POR PRIMEIRA LETRA
+        function setupCategoryFilter() {
+            const input = document.getElementById('productCategory');
+            const results = document.getElementById('categoryFilterResults');
+            
+            input.addEventListener('input', function(e) {
+                const value = e.target.value.trim().toLowerCase();
+                results.innerHTML = '';
+                
+                if (value.length === 0) {
+                    results.style.display = 'none';
+                    return;
+                }
+                
+                if (value.length === 1) {
+                    // Filtra por primeira letra
+                    const filtered = categories.filter(cat => 
+                        cat.toLowerCase().startsWith(value)
+                    ).slice(0, 5); // Máximo 5 sugestões
+                    
+                    if (filtered.length > 0) {
+                        results.innerHTML = filtered.map(cat => `
+                            <div class="filter-item" onclick="selectCategory('${cat}')">
+                                <div>${cat}</div>
+                                <div class="filter-info">Categoria existente</div>
+                            </div>
+                        `).join('');
+                        results.style.display = 'block';
+                    } else {
+                        results.innerHTML = `
+                            <div class="filter-item" style="cursor: default; color: var(--text-muted);">
+                                <div>Nenhuma categoria encontrada com "${value.toUpperCase()}..."</div>
+                                <div class="filter-info">Digite o nome completo para criar nova</div>
+                            </div>
+                        `;
+                        results.style.display = 'block';
+                    }
+                } else {
+                    // Busca normal por qualquer parte do texto
+                    const filtered = categories.filter(cat => 
+                        cat.toLowerCase().includes(value)
+                    ).slice(0, 5);
+                    
+                    if (filtered.length > 0) {
+                        results.innerHTML = filtered.map(cat => `
+                            <div class="filter-item" onclick="selectCategory('${cat}')">
+                                <div>${cat}</div>
+                                <div class="filter-info">Categoria existente</div>
+                            </div>
+                        `).join('');
+                        results.style.display = 'block';
+                    } else {
+                        results.innerHTML = `
+                            <div class="filter-item" onclick="selectNewCategory('${value}')">
+                                <div>${value.charAt(0).toUpperCase() + value.slice(1)} (Nova)</div>
+                                <div class="filter-info">Criar nova categoria</div>
+                            </div>
+                        `;
+                        results.style.display = 'block';
+                    }
+                }
+            });
+            
+            input.addEventListener('focus', function() {
+                if (this.value.trim().length > 0) {
+                    // Re-trigger input event
+                    this.dispatchEvent(new Event('input'));
+                }
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.category-filter')) {
+                    results.style.display = 'none';
+                }
             });
         }
 
-        function calculateStats() {
-            let totalInitial = 0;
-            let totalStock = 0;
+        function selectCategory(category) {
+            document.getElementById('productCategory').value = category;
+            document.getElementById('categoryFilterResults').style.display = 'none';
+        }
+
+        function selectNewCategory(value) {
+            const formatted = value.charAt(0).toUpperCase() + value.slice(1);
+            document.getElementById('productCategory').value = formatted;
+            document.getElementById('categoryFilterResults').style.display = 'none';
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
             
-            const abastecido = products.filter(p => {
+            document.getElementById('currentCategoryTitle').textContent = 
+                category === 'all' ? 'TODAS AS CATEGORIAS' : category.toUpperCase();
+            
+            renderProducts();
+        }
+
+        function calculateStats() {
+            let totalInitial = 0, totalStock = 0, abastecido = 0, reabastecer = 0;
+            
+            const filteredProducts = currentCategory === 'all' ? 
+                products : products.filter(p => p.category === currentCategory);
+            
+            filteredProducts.forEach(p => {
                 const qty = parseInt(p.initialQuantity) || 0;
                 const min = parseInt(p.minStock) || 0;
                 totalInitial += qty;
                 totalStock += min;
-                return qty > 5 && min > 10;
-            }).length;
-
-            const reabastecer = products.filter(p => {
-                const qty = parseInt(p.initialQuantity) || 0;
-                const min = parseInt(p.minStock) || 0;
-                totalInitial += qty;
-                totalStock += min;
-                return qty < 5 && min > 10;
-            }).length;
-
-            const faltando = products.length - abastecido - reabastecer;
-
+                
+                if (qty > 5 && min > 10) abastecido++;
+                else if (qty < 5 && min > 10) reabastecer++;
+            });
+            
+            const faltando = filteredProducts.length - abastecido - reabastecer;
+            
             return { 
                 abastecido, 
                 reabastecer, 
                 faltando, 
-                total: products.length,
-                totalInitial,
-                totalStock
+                total: filteredProducts.length, 
+                totalInitial, 
+                totalStock 
             };
         }
 
-        function renderStats() {
-            const stats = calculateStats();
-            const statsGrid = document.getElementById('statsGrid');
-            const statsSection = document.getElementById('statsSection');
-            const statsDate = document.getElementById('statsDate');
-            const statsSummary = document.getElementById('statsSummary');
-
-            if (products.length === 0) {
-                statsSection.style.display = 'none';
-                return;
-            }
-
-            statsSection.style.display = 'block';
-            statsDate.textContent = `Atualizado: ${formatDateTime(new Date())}`;
-
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number stat-total">${stats.total}</div>
-                    <div class="stat-label">Total</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number stat-abastecido">${stats.abastecido}</div>
-                    <div class="stat-label">Abastecido</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number stat-reabastecer">${stats.reabastecer}</div>
-                    <div class="stat-label">Reabastecer</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number stat-faltando">${stats.faltando}</div>
-                    <div class="stat-label">Faltando</div>
-                </div>
-            `;
-
-            document.getElementById('chartLegend').innerHTML = `
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #10b981;"></div>
-                    <span>Abastecido: ${stats.abastecido}</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #f59e0b;"></div>
-                    <span>Reabastecer: ${stats.reabastecer}</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #dc2626;"></div>
-                    <span>Faltando: ${stats.faltando}</span>
-                </div>
-            `;
-
-            statsSummary.innerHTML = `
-                <div class="summary-card">
-                    <div class="stat-number stat-initial">${stats.totalInitial.toLocaleString()}</div>
-                    <div class="stat-label">Total Inicial</div>
-                </div>
-                <div class="summary-card">
-                    <div class="stat-number stat-stock">${stats.totalStock.toLocaleString()}</div>
-                    <div class="stat-label">Total Estoque Mín.</div>
-                </div>
-            `;
-
-            renderStatsChart(stats);
-        }
-
         function renderStatsChart(stats) {
-            const ctx = document.getElementById('statsChart').getContext('2d');
+            const canvas = document.getElementById('statsChart');
+            if (!canvas || stats.total === 0) return;
             
-            if (statsChart) {
-                statsChart.destroy();
-            }
-
+            const ctx = canvas.getContext('2d');
+            if (statsChart) statsChart.destroy();
+            
             statsChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Abastecido', 'Reabastecer', 'Faltando'],
                     datasets: [{
                         data: [stats.abastecido, stats.reabastecer, stats.faltando],
-                        backgroundColor: ['#10b981', '#f59e0b', '#dc2626'],
+                        backgroundColor: [
+                            CHART_COLORS.success,
+                            CHART_COLORS.warning,
+                            CHART_COLORS.danger
+                        ],
                         borderWidth: 2,
                         borderColor: '#1a1a1a',
                         cutout: '60%'
@@ -809,94 +485,113 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    animation: {
-                        animateRotate: true,
-                        duration: 1000
-                    }
+                    plugins: { legend: { display: false } },
+                    animation: { animateRotate: true, duration: 1000 }
                 }
             });
         }
 
-        function showSection(sectionName) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(sectionName).classList.add('active');
-            event.target.classList.add('active');
-            if (sectionName === 'produtos') {
-                renderProducts();
-                renderStats();
-            }
-        }
-
-        function getProductStatus(initialQuantity, minStock) {
-            initialQuantity = parseInt(initialQuantity) || 0;
-            minStock = parseInt(minStock) || 0;
+        function renderStats() {
+            const stats = calculateStats();
+            const section = document.getElementById('statsSection');
             
-            if (initialQuantity > 5 && minStock > 10) {
-                return { status: 'abastecido', label: 'Abastecido' };
+            if (stats.total === 0) {
+                if (statsChart) statsChart.destroy();
+                section.style.display = 'none';
+                return;
             }
             
-            if (initialQuantity < 5 && minStock > 10) {
-                return { status: 'reabastecer', label: 'Reabastecer' };
-            }
+            section.style.display = 'block';
+            document.getElementById('statsDate').textContent = `Atualizado: ${formatDate(new Date())}`;
             
-            return { status: 'faltando', label: 'Faltando' };
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number stat-total">${stats.total}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-success">${stats.abastecido}</div>
+                    <div class="stat-label">Abastecido</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-warning">${stats.reabastecer}</div>
+                    <div class="stat-label">Reabastecer</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-danger">${stats.faltando}</div>
+                    <div class="stat-label">Faltando</div>
+                </div>
+            `;
+            
+            document.getElementById('chartLegend').innerHTML = `
+                <div class="legend-item">
+                    <div class="legend-color" style="background:${CHART_COLORS.success}"></div>
+                    <span>Abastecido: ${stats.abastecido}</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:${CHART_COLORS.warning}"></div>
+                    <span>Reabastecer: ${stats.reabastecer}</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:${CHART_COLORS.danger}"></div>
+                    <span>Faltando: ${stats.faltando}</span>
+                </div>
+            `;
+            
+            document.getElementById('statsSummary').innerHTML = `
+                <div class="summary-card">
+                    <div class="stat-number stat-blue">${stats.totalInitial.toLocaleString()}</div>
+                    <div class="stat-label">Total Inicial</div>
+                </div>
+                <div class="summary-card">
+                    <div class="stat-number stat-purple">${stats.totalStock.toLocaleString()}</div>
+                    <div class="stat-label">Total Estoque Mín.</div>
+                </div>
+            `;
+            
+            renderStatsChart(stats);
         }
 
         function renderProducts() {
             const container = document.getElementById('productsContainer');
+            const filteredProducts = currentCategory === 'all' ? 
+                products : products.filter(p => p.category === currentCategory);
             
-            if (products.length === 0) {
+            if (filteredProducts.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>Nenhum produto cadastrado</h3>
+                    <div class="empty">
+                        <h3>${currentCategory === 'all' ? 'Nenhum produto cadastrado' : `Nenhum produto na categoria "${currentCategory}"`}</h3>
                         <p>Adicione produtos na aba de cadastro</p>
                     </div>
                 `;
                 renderStats();
                 return;
             }
-
-            container.innerHTML = products.map(product => {
-                const { status, label } = getProductStatus(product.initialQuantity, product.minStock);
-                const borderColor = {
-                    abastecido: '#10b981',
-                    reabastecer: '#f59e0b',
-                    faltando: '#dc2626'
-                }[status];
-
-                const productUpdate = product.lastUpdate ? formatDateTime(new Date(product.lastUpdate)) : 
-                                   formatDateTime(new Date(product.createdAt));
-
+            
+            container.innerHTML = filteredProducts.map(p => {
+                const {status, label} = getStatus(p.initialQuantity, p.minStock);
+                const date = formatDate(new Date(p.lastUpdate || p.createdAt));
                 return `
-                    <div class="product-card" style="border-left-color: ${borderColor}" onclick="openEditModal('${product.id}')">
+                    <div class="product" style="border-left-color:${CHART_COLORS[status]}" onclick="openEditModal('${p.id}')">
+                        <div class="product-category">${p.category}</div>
                         <div class="product-header">
-                            <div class="product-name">${product.name}</div>
-                            <span class="stock-status status-${status}">${label}</span>
+                            <div class="product-name">${p.name}</div>
+                            <span class="status status-${status}">${label}</span>
                         </div>
                         <div class="stock-info">
                             <div class="stock-item">
                                 <span class="stock-label">Inicial</span>
-                                <span class="stock-number initial-stock-${status}">${product.initialQuantity}</span>
+                                <span class="stock-number ${status}">${p.initialQuantity}</span>
                             </div>
                             <div class="stock-item">
                                 <span class="stock-label">Estoque</span>
-                                <span class="stock-number min-stock">${product.minStock}</span>
+                                <span class="stock-number">${p.minStock}</span>
                             </div>
                         </div>
-                        <div class="product-log">
-                             ${productUpdate}
-                        </div>
+                        <div class="product-log">${date}</div>
                         <div class="stock-actions">
-                            <button class="btn btn-primary" onclick="event.stopPropagation(); openEditModal('${product.id}')">
-                                Editar
-                            </button>
-                            <button class="btn btn-danger" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
-                                Apagar
-                            </button>
+                            <button class="btn btn-primary" onclick="event.stopPropagation();openEditModal('${p.id}')">Editar</button>
+                            <button class="btn btn-danger" onclick="event.stopPropagation();deleteProduct('${p.id}')">Apagar</button>
                         </div>
                     </div>
                 `;
@@ -905,21 +600,42 @@
             renderStats();
         }
 
-        document.getElementById('productForm').addEventListener('submit', e => {
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(name).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (name === 'produtos') {
+                renderCategories();
+                renderProducts();
+            } else if (name === 'cadastro') {
+                setupCategoryFilter();
+            }
+        }
+
+        // CADASTRO
+        document.getElementById('productForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const now = Date.now();
+            const category = document.getElementById('productCategory').value.trim();
             const newProduct = {
                 id: now.toString(),
                 name: document.getElementById('productName').value.trim(),
+                category: category,
                 initialQuantity: parseInt(document.getElementById('initialQuantity').value) || 0,
                 minStock: parseInt(document.getElementById('minStock').value) || 0,
                 createdAt: now,
                 lastUpdate: now
             };
+            
             products.push(newProduct);
             localStorage.setItem('products', JSON.stringify(products));
-            e.target.reset();
+            updateCategories();
+            this.reset();
+            document.getElementById('categoryFilterResults').style.display = 'none';
             showSection('produtos');
+            alert('Produto cadastrado com sucesso!');
         });
 
         function openEditModal(id) {
@@ -928,6 +644,7 @@
             if (product) {
                 document.getElementById('editId').value = product.id;
                 document.getElementById('editName').value = product.name;
+                document.getElementById('editCategory').value = product.category;
                 document.getElementById('editInitial').value = product.initialQuantity;
                 document.getElementById('editMinStock').value = product.minStock;
                 document.getElementById('editModal').style.display = 'flex';
@@ -939,20 +656,24 @@
             editingId = null;
         }
 
-        document.getElementById('editForm').addEventListener('submit', e => {
+        document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const index = products.findIndex(p => p.id === editingId);
             if (index !== -1) {
+                const newCategory = document.getElementById('editCategory').value.trim();
                 products[index] = {
                     ...products[index],
                     name: document.getElementById('editName').value.trim(),
+                    category: newCategory,
                     initialQuantity: parseInt(document.getElementById('editInitial').value) || 0,
                     minStock: parseInt(document.getElementById('editMinStock').value) || 0,
                     lastUpdate: Date.now()
                 };
                 localStorage.setItem('products', JSON.stringify(products));
+                updateCategories();
                 renderProducts();
                 closeModal();
+                alert('Produto atualizado com sucesso!');
             }
         });
 
@@ -960,15 +681,21 @@
             if (confirm('Tem certeza que deseja apagar este produto?')) {
                 products = products.filter(p => p.id !== id);
                 localStorage.setItem('products', JSON.stringify(products));
+                updateCategories();
                 renderProducts();
             }
         }
 
-        window.onclick = e => {
+        window.onclick = function(e) {
             if (e.target.id === 'editModal') closeModal();
         };
 
-        document.addEventListener('DOMContentLoaded', renderProducts);
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCategories();
+            renderProducts();
+            setupCategoryFilter();
+        });
     </script>
 </body>
 </html>
